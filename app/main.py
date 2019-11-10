@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 
-from routers import auth, profiles, ring
+from api import api
 
 app = FastAPI()
 
-app.include_router(auth.router, prefix="/auth")
-app.include_router(profiles.router, prefix="/profiles")
-app.include_router(ring.router, prefix="/ring")
+app.include_router(api.api_router)
