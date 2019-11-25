@@ -1,21 +1,22 @@
 from bson.objectid import ObjectId
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Depends
 from starlette.websockets import WebSocket
 import asyncio
 
+from api.auth_utils import get_current_active_user
 from db.base import db, r
-from db.models import ForeignProfile
+from models import ForeignProfile, User, UserWithId
 
 
 router = APIRouter()
 
-@router.get('/me')
-async def me():
-    return "It's me!"
+@router.get('/me', response_model=User)
+async def me(current_user: User = Depends(get_current_active_user)):
+    return current_user
 
 @router.patch('/me')
-async def update_me():
-    return "Path me!"
+async def update_me(current_user: User = Depends(get_current_active_user)):
+    return "Patch me!"
 
 @router.websocket('/me/ws')
 async def ws_endpoint(websocket: WebSocket):
@@ -37,14 +38,14 @@ async def ws_endpoint(websocket: WebSocket):
         await websocket.send_text(result)
 
 @router.get('/{profile_id}', response_model=ForeignProfile)
-async def get_profile(profile_id: str):
+async def get_profile(profile_id: str, current_user: User = Depends(get_current_active_user)):
     # TODO: Also send distance information
     try:
         obj_profile_id = ObjectId(profile_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid ID")
 
-    profile = db.User.find_one({'_id': obj_profile_id}, {'_id': 0})
+    profile = db.User.find_one({'_id': obj_profile_id}, {'_id': 0, 'first_name': 1, 'last_name': 1, 'profile_pic': 1})
 
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")

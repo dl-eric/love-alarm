@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from starlette.websockets import WebSocket
 
 from api import api
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 app = FastAPI()
 

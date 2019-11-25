@@ -1,20 +1,20 @@
 from bson.objectid import ObjectId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from db.base import db
-from db.models import UserId
+from models import UserId, User, UserWithId
+from api.auth_utils import get_current_active_user
 
 router = APIRouter()
 
 @router.post('/{profile_id}')
-async def wink_profile(profile_id: str, curr_user: UserId):
+async def wink_profile(profile_id: str, current_user: UserWithId = Depends(get_current_active_user)):
     try:
         user_id = ObjectId(profile_id)
-        ObjectId(curr_user.user_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid ID")
     
-    if profile_id == curr_user.user_id:
+    if profile_id == current_user.id:
         raise HTTPException(status_code=400, detail="Can't wink at yourself")
 
     profile = db.User.find_one({'_id': user_id})
@@ -23,23 +23,22 @@ async def wink_profile(profile_id: str, curr_user: UserId):
 
     winkers = profile['winkers']
     
-    if curr_user.user_id in winkers:
+    if current_user.id in winkers:
         raise HTTPException(status_code=400, detail="Already winked this user")
 
-    winkers.append(curr_user.user_id)
+    winkers.append(current_user.id)
     db.User.update({'_id': user_id}, { '$set': {'winkers': winkers}})
 
     return {"message": "Successfully winked"}
 
 @router.delete('/{profile_id}')
-async def unwink_profile(profile_id: str, curr_user: UserId):
+async def unwink_profile(profile_id: str, current_user: UserWithId = Depends(get_current_active_user)):
     try:
         user_id = ObjectId(profile_id)
-        ObjectId(curr_user.user_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid ID")
     
-    if profile_id == curr_user.user_id:
+    if profile_id == current_user.id:
         raise HTTPException(status_code=400, detail="Can't unwink at yourself")
 
     profile = db.User.find_one({'_id': user_id})
@@ -49,7 +48,7 @@ async def unwink_profile(profile_id: str, curr_user: UserId):
     winkers = profile['winkers']
 
     try:
-        winkers.remove(curr_user.user_id)
+        winkers.remove(current_user.id)
     except:
         raise HTTPException(status_code=400, detail="Already unwinked/not winked")
 
