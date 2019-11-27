@@ -12,33 +12,12 @@ from db.base import db
 from models import User, UserWithId, TokenData
 from config import SECRET_KEY, ALGORITHM
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
-
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
 
 def get_user(phone_number: str):
     user = db.User.find_one({'phone_number': phone_number})
     user['id'] = str(user['_id'])
     return UserWithId(**user)
-
-
-def authenticate_user(phone_number: str, password: str):
-    user = get_user(phone_number)
-    print(user)
-    if not user:
-        return False
-    if not verify_password(password, user.password):
-        return False
-    return user
 
 
 def create_access_token(*, data: dict, expires_delta: timedelta = None):

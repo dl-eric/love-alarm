@@ -7,10 +7,7 @@ class User(BaseModel):
     profile_pic: str = None
     winkers: list = []
 
-class UserInDB(User):
-    password: str
-
-class UserWithId(UserInDB):
+class UserWithId(User):
     id: str
 
 class ForeignProfile(BaseModel):
@@ -27,3 +24,13 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     phone_number: str = None
+
+class PhoneNumber(BaseModel):
+    phone_number: str
+
+class RequestId(BaseModel):
+    request_id: str
+
+class ValidateIn(BaseModel):
+    request_id: str
+    code: str

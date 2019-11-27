@@ -9,3 +9,7 @@ MONGO_URI = os.environ.get('MONGO_URI', '').replace('\r', '')
 SECRET_KEY = os.environ.get('SECRET_KEY', '').replace('\r', '')
 ALGORITHM  = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Nexmo
+NEXMO_API_KEY = os.environ.get('NEXMO_API_KEY', '').replace('\r', '')
+NEXMO_SECRET = os.environ.get('NEXMO_SECRET', '').replace('\r', '')
