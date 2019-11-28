@@ -19,7 +19,7 @@ async def update_me(info: PatchUserIn, current_user: UserWithId = Depends(get_cu
     return "Patch me!"
 
 @router.websocket('/me/ws')
-async def ws_endpoint(websocket: WebSocket, token: str = None, distance: int = None):
+async def ws_endpoint(websocket: WebSocket, token: str = None):
     if not token or not distance:
         await websocket.close()
         return
@@ -36,13 +36,13 @@ async def ws_endpoint(websocket: WebSocket, token: str = None, distance: int = N
         # User should send us their location
         position = await websocket.receive_text()
 
-        # Message format: "longitude:latitude"
+        # Message format: "longitude:latitude:distance:distance unit"
         # TODO Validate message
 
         data = position.split(':')
         r.geoadd('locations', float(data[0]), float(data[1]), user.id)
 
-        answer = r.georadiusbymember('locations', user.id, distance, unit='km')
+        answer = r.georadiusbymember('locations', user.id, int(data[2]), unit=data[3])
 
         num_winks = 0
         for winker in user.winkers:
