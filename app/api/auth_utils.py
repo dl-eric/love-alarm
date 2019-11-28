@@ -8,9 +8,9 @@ from jwt import PyJWTError
 from passlib.context import CryptContext
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from db.base import db
-from models import User, UserWithId, TokenData
-from config import SECRET_KEY, ALGORITHM
+from app.db.base import db
+from app.models import User, UserWithId, TokenData
+from app.config import SECRET_KEY, ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 

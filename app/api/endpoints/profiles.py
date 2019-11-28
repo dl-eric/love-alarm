@@ -3,9 +3,9 @@ from fastapi import APIRouter, Header, HTTPException, Depends
 from starlette.websockets import WebSocket
 import asyncio
 
-from api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
-from db.base import db, r
-from models import ForeignProfile, User, UserWithId
+from app.api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
+from app.db.base import db, r
+from app.models import ForeignProfile, User, UserWithId
 
 
 router = APIRouter()

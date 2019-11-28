@@ -1,9 +1,9 @@
 from bson.objectid import ObjectId
 from fastapi import APIRouter, HTTPException, Depends
 
-from db.base import db
-from models import UserId, User, UserWithId
-from api.auth_utils import get_current_active_user
+from app.db.base import db
+from app.models import UserId, User, UserWithId
+from app.api.auth_utils import get_current_active_user
 
 router = APIRouter()
 

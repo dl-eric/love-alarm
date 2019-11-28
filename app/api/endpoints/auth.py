@@ -5,10 +5,10 @@ from fastapi.security import OAuth2PasswordBearer
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, HTTP_400_BAD_REQUEST
 import nexmo
 
-from db.base import db
-from models import User, PhoneNumber, RequestId, ValidateIn, Token
-from api.auth_utils import create_access_token
-from config import ACCESS_TOKEN_EXPIRE_MINUTES, NEXMO_API_KEY, NEXMO_SECRET
+from app.db.base import db
+from app.models import User, PhoneNumber, RequestId, ValidateIn, Token
+from app.api.auth_utils import create_access_token
+from app.config import ACCESS_TOKEN_EXPIRE_MINUTES, NEXMO_API_KEY, NEXMO_SECRET
 
 
 # Nexmo
