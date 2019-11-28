@@ -2,7 +2,8 @@ import os
 
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost').replace('\r', '')
 REDIS_PASS = os.environ.get('REDIS_PASS', 'password').replace('\r', '')
-REDIS_PORT = os.environ.get('REDIS_PORT', 6649).replace('\r', '')
+REDIS_PORT = os.environ.get('REDIS_PORT', '6649').replace('\r', '')
+REDIS_URL = os.environ.get('REDIS_URL', '').replace('\r', '')
 MONGO_URI = os.environ.get('MONGO_URI', '').replace('\r', '')
 
 # JWT/Auth/Security Stuff
