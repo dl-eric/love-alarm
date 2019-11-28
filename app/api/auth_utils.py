@@ -3,7 +3,9 @@ from bson.objectid import ObjectId
 
 import jwt
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2
+from fastapi.security.utils import get_authorization_scheme_param
+from fastapi.openapi.models import OAuthFlows
 from jwt import PyJWTError
 from passlib.context import CryptContext
 from starlette.status import HTTP_401_UNAUTHORIZED
@@ -12,7 +14,7 @@ from app.db.base import db
 from app.models import User, UserWithId, TokenData
 from app.config import SECRET_KEY, ALGORITHM
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+oauth2_scheme = OAuth2()
 
 def get_user(phone_number: str):
     user = db.User.find_one({'phone_number': phone_number})
@@ -31,7 +33,6 @@ def create_access_token(*, data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 async def get_user_from_token(token: str):
-    print(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         phone_number: str = payload.get('sub')
@@ -42,26 +43,21 @@ async def get_user_from_token(token: str):
 
     return get_user(phone_number=phone_number)
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(header: str = Depends(oauth2_scheme)):
+    heading, token = get_authorization_scheme_param(header)
+
     credentials_exception = HTTPException(
         status_code=HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        phone_number: str = payload.get("sub")
-        if phone_number is None:
-            raise credentials_exception
-        token_data = TokenData(phone_number=phone_number)
-    except PyJWTError:
-        raise credentials_exception
-    user = get_user(phone_number=token_data.phone_number)
+
+    user = await get_user_from_token(token)
     if user is None:
         raise credentials_exception
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: UserWithId = Depends(get_current_user)):
     # If we want to mark certain users active, we would check it here.
     return current_user
