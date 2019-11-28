@@ -9,3 +9,5 @@ print("Redis ping:", r.ping())
 
 mongo = MongoClient(MONGO_URI)
 db = mongo.wink
+
+print("Mongo ping:", db.command('ping'))

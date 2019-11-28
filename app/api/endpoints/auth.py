@@ -67,6 +67,9 @@ async def start_login(phone_num : PhoneNumber):
         except:
             # Redis error. Cancel the verification.
             response = nex_client.cancel_verification(response['request_id'])
+            raise HTTPException(
+                status_code=HTTP_500_INTERNAL_SERVER_ERROR
+            )
     elif response['status'] == '3':
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
