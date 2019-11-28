@@ -20,7 +20,7 @@ async def update_me(info: PatchUserIn, current_user: UserWithId = Depends(get_cu
 
 @router.websocket('/me/ws')
 async def ws_endpoint(websocket: WebSocket, token: str = None):
-    if not token or not distance:
+    if not token:
         await websocket.close()
         return
 
