@@ -15,7 +15,7 @@ async def me(current_user: UserWithId = Depends(get_current_active_user)):
     return current_user
 
 @router.patch('/me')
-async def update_me(current_user: UserWithId = Depends(get_current_active_user), info: PatchUserIn):
+async def update_me(info: PatchUserIn, current_user: UserWithId = Depends(get_current_active_user)):
     return "Patch me!"
 
 @router.websocket('/me/ws')
