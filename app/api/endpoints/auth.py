@@ -48,19 +48,10 @@ async def start_login(phone_num : PhoneNumber):
     Starts the Nexmo verify flow for a given phone number. If the phone number is new,
     we create a new user for it. Otherwise, we simply use the existing user.
     """
-    # Check if valid phone number
-    resp1 = nex_client.get_basic_number_insight(number=phone_num.phone_number)
-    if resp1['status'] != 0:
-        print(resp1)
-        print('Error: %s' % resp1['status_message'])
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
-            detail=resp1['status_message']
-        )
 
     # Request to verify this phone number
     response = nex_client.start_verification(number=phone_num.phone_number, brand="Wink")
-
+    
     # Get back request_id
     if response["status"] == "0":
         print("Started verification request_id is %s" % (response["request_id"]))
@@ -72,6 +63,11 @@ async def start_login(phone_num : PhoneNumber):
             upsert=True
         )
         return {'request_id': response['request_id']}
+    elif response['status'] == '3':
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=response['error_text']
+        )
     else:
         print("Error: %s" % response["error_text"])
         raise HTTPException(
