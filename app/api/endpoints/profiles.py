@@ -3,7 +3,7 @@ from fastapi import APIRouter, Header, HTTPException, Depends
 from starlette.websockets import WebSocket
 import asyncio
 
-from api.auth_utils import get_current_active_user, get_current_user
+from api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
 from db.base import db, r
 from models import ForeignProfile, User, UserWithId
 
@@ -24,9 +24,9 @@ async def ws_endpoint(websocket: WebSocket, token: str = None, distance: int = N
         await websocket.close()
         return
 
-    try:
-        user = await get_current_user(token)
-    except:
+    user = await get_user_from_token(token)
+    if not user:
+        print('Invalid token')
         await websocket.close()
         return
 
@@ -45,11 +45,11 @@ async def ws_endpoint(websocket: WebSocket, token: str = None, distance: int = N
         answer = r.georadiusbymember('locations', user.id, distance, unit='km')
 
         num_winks = 0
-        for winker in current_user.winkers:
+        for winker in user.winkers:
             if winker in answer:
                 num_winks += 1
-
-        await websocket.send_text(num_winks)
+        
+        await websocket.send_text(str(num_winks))
 
 @router.get('/{profile_id}', response_model=ForeignProfile)
 async def get_profile(profile_id: str, current_user: User = Depends(get_current_active_user)):
@@ -71,4 +71,6 @@ async def get_nearby(radius: int, current_user: UserWithId = Depends(get_current
     """
     Returns a list of user ids that are within <radius> of current user
     """
-    return r.georadiusbymember('locations', current_user.id, radius, "km")
+    answers = r.georadiusbymember('locations', current_user.id, radius, "km")
+    answers.remove(current_user.id.encode()) # Remove current user
+    return answers

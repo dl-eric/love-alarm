@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 class User(BaseModel):
     phone_number: str
-    first_name: str
+    first_name: str = None
     last_name: str = None
     profile_pic: str = None
     winkers: list = []
