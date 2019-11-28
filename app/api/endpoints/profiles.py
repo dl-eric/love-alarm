@@ -5,7 +5,7 @@ import asyncio
 
 from app.api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
 from app.db.base import db, r
-from app.models import ForeignProfile, User, UserWithId
+from app.models import ForeignProfile, User, UserWithId, PatchUserIn
 
 
 router = APIRouter()
@@ -15,7 +15,7 @@ async def me(current_user: UserWithId = Depends(get_current_active_user)):
     return current_user
 
 @router.patch('/me')
-async def update_me(current_user: UserWithId = Depends(get_current_active_user)):
+async def update_me(current_user: UserWithId = Depends(get_current_active_user), info: PatchUserIn):
     return "Patch me!"
 
 @router.websocket('/me/ws')

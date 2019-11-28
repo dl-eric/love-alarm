@@ -57,12 +57,16 @@ async def start_login(phone_num : PhoneNumber):
         print("Started verification request_id is %s" % (response["request_id"]))
 
         # TODO: Check for error 
-        db.User.update_one(
-            {'phone_number': phone_num.phone_number}, 
-            { '$set': {'request_id': response['request_id']}}, 
-            upsert=True
-        )
-        return {'request_id': response['request_id']}
+        try:
+            db.User.update_one(
+                {'phone_number': phone_num.phone_number}, 
+                { '$set': {'request_id': response['request_id']}}, 
+                upsert=True
+            )
+            return {'request_id': response['request_id']}
+        except:
+            # Redis error. Cancel the verification.
+            response = nex_client.cancel_verification(response['request_id'])
     elif response['status'] == '3':
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,

@@ -18,6 +18,11 @@ class ForeignProfile(BaseModel):
 class UserId(BaseModel):
     user_id: str
 
+class PatchUserIn(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    profile_pic: str = None
+
 class Token(BaseModel):
     access_token: str
     token_type: str
