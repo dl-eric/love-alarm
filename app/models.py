@@ -13,7 +13,7 @@ class UserWithId(User):
 class ForeignProfile(BaseModel):
     first_name: str
     last_name: str
-    profile_pic: str
+    profile_pic: str = None
 
 class UserId(BaseModel):
     user_id: str

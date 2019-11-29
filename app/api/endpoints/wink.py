@@ -21,6 +21,8 @@ async def wink_profile(profile_id: str, current_user: UserWithId = Depends(get_c
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
 
+    if ('winkers' not in profile):
+        profile['winkers'] = []
     winkers = profile['winkers']
     
     if current_user.id in winkers:
