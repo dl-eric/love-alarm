@@ -16,7 +16,14 @@ async def me(current_user: UserWithId = Depends(get_current_active_user)):
 
 @router.patch('/me')
 async def update_me(info: PatchUserIn, current_user: UserWithId = Depends(get_current_active_user)):
-    db.User.update({'phone_number': current_user.phone_number}, {'$set': info.dict()})
+    info_without_nulls = {}
+    info_dict = info.dict()
+
+    for key in info_dict:
+        if info_dict[key] != None:
+            info_without_nulls[key] = info_dict[key]
+
+    db.User.update({'phone_number': current_user.phone_number}, {'$set': info_without_nulls})
     return 0
 
 @router.websocket('/me/ws')
