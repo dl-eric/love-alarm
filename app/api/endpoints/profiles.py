@@ -5,7 +5,7 @@ import asyncio
 
 from app.api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
 from app.db.base import db, r
-from app.models import ForeignProfile, User, UserWithId, PatchUserIn
+from app.models import ForeignProfile, User, UserWithId, PatchUserIn, PatchLocationIn
 
 
 router = APIRouter()
@@ -24,6 +24,12 @@ async def update_me(info: PatchUserIn, current_user: UserWithId = Depends(get_cu
             info_without_nulls[key] = info_dict[key]
 
     db.User.update({'phone_number': current_user.phone_number}, {'$set': info_without_nulls})
+    return 0
+
+@router.patch('/me/location')
+async def update_location(location: PatchLocationIn, current_user: UserWithId = Depends(get_current_active_user)):
+    # TODO: Verify location input
+    r.geoadd('locations', float(location.longitude), float(location.latitude), current_user.id)
     return 0
 
 @router.websocket('/me/ws')

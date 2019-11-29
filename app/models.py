@@ -23,6 +23,10 @@ class PatchUserIn(BaseModel):
     last_name: str = None
     profile_pic: str = None
 
+class PatchLocationIn(BaseModel):
+    longitude: str
+    latitude: str
+
 class Token(BaseModel):
     access_token: str
     token_type: str
