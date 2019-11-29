@@ -16,7 +16,8 @@ async def me(current_user: UserWithId = Depends(get_current_active_user)):
 
 @router.patch('/me')
 async def update_me(info: PatchUserIn, current_user: UserWithId = Depends(get_current_active_user)):
-    return "Patch me!"
+    db.User.update({'phone_number': current_user.phone_number}, {'$set': info.dict()})
+    return 0
 
 @router.websocket('/me/ws')
 async def ws_endpoint(websocket: WebSocket, token: str = None):
