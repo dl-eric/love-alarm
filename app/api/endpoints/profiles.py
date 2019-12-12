@@ -96,6 +96,9 @@ async def delete_image(current_user: UserWithId = Depends(get_current_active_use
     """
     Deletes a given image from S3 for a given user
     """
+    if not current_user.images or len(current_user.images) == 0:
+        raise HTTPException(status_code=400, detail="User has no images")
+        
     key = get_image_key(UserWithId.id, image_uuid)
 
     # Attempt to delete from S3 first to ensure S3 is always the most up to date
