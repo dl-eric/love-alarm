@@ -21,3 +21,6 @@ AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', '').replace('\r', '')
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', '').replace('\r', '')
 AWS_REGION     = os.environ.get('AWS_REGION', '').replace('\r', '')
 S3_URL_EXPIRE_TIME = 300 # 5 minutes
+
+# Wink config
+MAX_NUMBER_USER_IMAGES = 10

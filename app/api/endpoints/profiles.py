@@ -9,7 +9,7 @@ from app.api.auth_utils import get_current_active_user, get_current_user, get_us
 from app.api.aws_utils import get_image_key
 from app.db.base import db, r, aws
 from app.models import ForeignProfile, User, UserWithId, PatchUserIn, PatchLocationIn
-from app.config import S3_BUCKET_NAME, S3_URL_EXPIRE_TIME
+from app.config import S3_BUCKET_NAME, S3_URL_EXPIRE_TIME, MAX_NUMBER_USER_IMAGES
 
 
 router = APIRouter()
@@ -43,12 +43,14 @@ async def get_presigned_url(current_user: UserWithId = Depends(get_current_activ
     """
     image_name = uuid.uuid4()
 
-    try:
-        if not current_user.images:
-            current_user.images = [image_name]
-        else:
-            current_user.images.append(image_name)
+    if not current_user.images:
+        current_user.images = [image_name]
+    elif len(current_user.images) >= MAX_NUMBER_USER_IMAGES:
+        raise HTTPException(status_code=400, detail="Max images reached")
+    else:
+        current_user.images.append(image_name)
 
+    try:
         db.User.update({'phone_number': current_user.phone_number}, {'$set': current_user.images})
     except:
         raise HTTPException(status_code=500, detail="Mongo Failed")
@@ -63,7 +65,7 @@ async def get_presigned_url(current_user: UserWithId = Depends(get_current_activ
         # If Mongo fails here, then we will have a database corruption. Should be fine because clients should realize
         # the image doesn't exist and will call delete_image endpoint.
         db.User.update({'phone_number': current_user.phone_number}, {'$set': current_user.images})
-        
+
         raise HTTPException(status_code=500, detail="AWS Failed")
 
     return response
