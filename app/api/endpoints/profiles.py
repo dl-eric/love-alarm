@@ -6,6 +6,7 @@ import boto3
 import uuid
 
 from app.api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
+from app.api.aws_utils import get_image_key
 from app.db.base import db, r, aws
 from app.models import ForeignProfile, User, UserWithId, PatchUserIn, PatchLocationIn
 from app.config import S3_BUCKET_NAME, S3_URL_EXPIRE_TIME
@@ -35,16 +36,28 @@ async def update_location(location: PatchLocationIn, current_user: UserWithId = 
     r.geoadd('locations', float(location.longitude), float(location.latitude), current_user.id)
     return 0
 
-@router.get('/me/image')
+@router.post('/me/image')
 async def get_presigned_url(current_user: UserWithId = Depends(get_current_active_user)):
+    """
+    Creates an AWS presigned URL for clients that want to upload images
+    """
     image_name = uuid.uuid4()
-    key = UserWithId.id + '/images/' + str(image_name)
+    key = get_image_key(UserWithId.id, str(image_name))
     try:
         response = aws.generate_presigned_post(S3_BUCKET_NAME, key, ExpiresIn=S3_URL_EXPIRE_TIME)
     except:
         raise HTTPException(status_code=500, detail="AWS Failed")
 
     return response
+
+@router.delete('/me/image')
+async def delete_image(current_user: UserWithId = Depends(get_current_active_user), image_uuid : str):
+    """
+    Deletes a given image from S3 for a given user
+    """
+    key = get_image_key(UserWithId.id, image_uuid)
+    aws.delete_object(bucket_name=S3_BUCKET_NAME, Key=key)
+    return 0
 
 @router.websocket('/me/ws')
 async def ws_endpoint(websocket: WebSocket, token: str = None):
