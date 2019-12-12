@@ -42,13 +42,52 @@ async def get_presigned_url(current_user: UserWithId = Depends(get_current_activ
     Creates an AWS presigned URL for clients that want to upload images
     """
     image_name = uuid.uuid4()
+
+    try:
+        if not current_user.images:
+            current_user.images = [image_name]
+        else:
+            current_user.images.append(image_name)
+
+        db.User.update({'phone_number': current_user.phone_number}, {'$set': current_user.images})
+    except:
+        raise HTTPException(status_code=500, detail="Mongo Failed")
+
     key = get_image_key(UserWithId.id, str(image_name))
     try:
         response = aws.generate_presigned_post(S3_BUCKET_NAME, key, ExpiresIn=S3_URL_EXPIRE_TIME)
     except:
+        # Remove from Mongo
+        current_user.images.remove(image_name)
+
+        # If Mongo fails here, then we will have a database corruption. Should be fine because clients should realize
+        # the image doesn't exist and will call delete_image endpoint.
+        db.User.update({'phone_number': current_user.phone_number}, {'$set': current_user.images})
+        
         raise HTTPException(status_code=500, detail="AWS Failed")
 
     return response
+
+@router.patch('/me/image')
+async def reorder_images(current_user: UserWithId = Depends(get_current_active_user), images : list):
+    """
+    Patches user's images with the given new order. Image list consists of filenames, and the length of the
+    given image list must be the same as the number of the user's images, and must contain the same elements.
+
+    User must have more than two images for a successful response
+    """
+    if not current_user.images or len(current_user.images) < 2:
+        raise HTTPException(status_code=400, detail="User has less than 2 images")
+
+    if len(images) != len(current_user.images) and set(images) != set(current_user.images):
+        raise HTTPException(status_code=400, detail="Invalid given image list")
+
+    try:
+        db.User.update({'phone_number': current_user.phone_number}, {'$set': {'images': images}})
+    except:
+        raise HTTPException(status_code=500, detail="Mongo Failed to Update")
+
+    return 0
 
 @router.delete('/me/image')
 async def delete_image(current_user: UserWithId = Depends(get_current_active_user), image_uuid : str):
@@ -56,7 +95,18 @@ async def delete_image(current_user: UserWithId = Depends(get_current_active_use
     Deletes a given image from S3 for a given user
     """
     key = get_image_key(UserWithId.id, image_uuid)
+
+    # Attempt to delete from S3 first to ensure S3 is always the most up to date
     aws.delete_object(bucket_name=S3_BUCKET_NAME, Key=key)
+
+    # Attempt to delete from Mongo second
+    current_user.images.remove(image_uuid)
+
+    try:
+        db.User.update({'phone_number': current_user.phone_number}, {'$set': {'images': current_user.images}})
+    except:
+        raise HTTPException(status_code=500, detail="Mongo Failed to Update")
+    
     return 0
 
 @router.websocket('/me/ws')
