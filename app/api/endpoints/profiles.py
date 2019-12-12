@@ -3,6 +3,7 @@ from fastapi import APIRouter, Header, HTTPException, Depends
 from starlette.websockets import WebSocket
 import asyncio
 import boto3
+import uuid
 
 from app.api.auth_utils import get_current_active_user, get_current_user, get_user_from_token
 from app.db.base import db, r, aws
@@ -36,8 +37,10 @@ async def update_location(location: PatchLocationIn, current_user: UserWithId = 
 
 @router.get('/me/image')
 async def get_presigned_url(current_user: UserWithId = Depends(get_current_active_user)):
+    image_name = uuid.uuid4()
+    key = UserWithId.id + '/images/' + str(image_name)
     try:
-        response = aws.generate_presigned_post(S3_BUCKET_NAME, 'obj_name', ExpiresIn=S3_URL_EXPIRE_TIME)
+        response = aws.generate_presigned_post(S3_BUCKET_NAME, key, ExpiresIn=S3_URL_EXPIRE_TIME)
     except:
         raise HTTPException(status_code=500, detail="AWS Failed")
 
