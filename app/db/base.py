@@ -14,6 +14,6 @@ db = mongo.wink
 print("Mongo ping:", db.command('ping'))
 
 aws = boto3.client('s3',
-    aws_access_key=AWS_ACCESS_KEY,
+    aws_access_key_id=AWS_ACCESS_KEY,
     aws_secret_access_key=AWS_SECRET_KEY,
     region_name=AWS_REGION)
