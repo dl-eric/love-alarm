@@ -71,7 +71,7 @@ async def get_presigned_url(current_user: UserWithId = Depends(get_current_activ
     return response
 
 @router.patch('/me/image')
-async def reorder_images(current_user: UserWithId = Depends(get_current_active_user), images : list):
+async def reorder_images(images : list, current_user: UserWithId = Depends(get_current_active_user)):
     """
     Patches user's images with the given new order. Image list consists of filenames, and the length of the
     given image list must be the same as the number of the user's images, and must contain the same elements.
@@ -92,7 +92,7 @@ async def reorder_images(current_user: UserWithId = Depends(get_current_active_u
     return 0
 
 @router.delete('/me/image')
-async def delete_image(current_user: UserWithId = Depends(get_current_active_user), image_uuid : str):
+async def delete_image(image_uuid : str, current_user: UserWithId = Depends(get_current_active_user)):
     """
     Deletes a given image from S3 for a given user
     """
