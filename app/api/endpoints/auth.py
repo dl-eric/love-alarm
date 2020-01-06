@@ -8,7 +8,7 @@ import nexmo
 from app.db.base import db
 from app.models import User, PhoneNumber, RequestId, ValidateIn, Token
 from app.api.auth_utils import create_access_token
-from app.config import ACCESS_TOKEN_EXPIRE_MINUTES, NEXMO_API_KEY, NEXMO_SECRET
+from app.config import ACCESS_TOKEN_EXPIRE_MINUTES, NEXMO_API_KEY, NEXMO_SECRET, DEBUG_MODE
 
 
 # Nexmo
@@ -119,4 +119,33 @@ async def validate_code(code: ValidateIn):
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
             detail="Incorrect code"
+        )
+
+@router.post('/get_token', response_model=Token)
+async def get_token(phone_number: PhoneNumber):
+    """
+    Debug function to get valid tokens
+    
+    Creates user with phone number if phone number is new!
+    """
+
+    if DEBUG_MODE:
+        # Create the user if they don't exist yet
+        if not db.User.find_one({'phone_number': phone_number.phone_number}):
+            db.User.update_one(
+                {'phone_number': phone_number.phone_number}, 
+                { '$set': {'request_id': None, 'first_name': 'Debug', 'last_name': 'User', 'profile_pic': None}}, 
+                upsert=True
+            )
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": phone_number.phone_number}, expires_delta=access_token_expires
+        )
+
+        return {"access_token": access_token, "token_type": "bearer"}
+    else:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Must be running in debug mode to access this endpoint"
         )

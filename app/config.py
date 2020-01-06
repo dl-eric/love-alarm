@@ -24,3 +24,6 @@ S3_URL_EXPIRE_TIME = 300 # 5 minutes
 
 # Wink config
 MAX_NUMBER_USER_IMAGES = 10
+
+# Debug 
+DEBUG_MODE = True
