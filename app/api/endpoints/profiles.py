@@ -41,7 +41,7 @@ async def get_presigned_url(current_user: UserWithId = Depends(get_current_activ
     """
     Creates an AWS presigned URL for clients that want to upload images
     """
-    image_name = uuid.uuid4()
+    image_name = str(uuid.uuid4())
 
     if not current_user.images:
         current_user.images = [image_name]
@@ -49,13 +49,13 @@ async def get_presigned_url(current_user: UserWithId = Depends(get_current_activ
         raise HTTPException(status_code=400, detail="Max images reached")
     else:
         current_user.images.append(image_name)
-
+    print(current_user.images)
     try:
-        db.User.update({'phone_number': current_user.phone_number}, {'$set': current_user.images})
+        db.User.update({'phone_number': current_user.phone_number}, {'$set': {'images': current_user.images}})
     except:
         raise HTTPException(status_code=500, detail="Mongo Failed")
 
-    key = get_image_key(UserWithId.id, str(image_name))
+    key = get_image_key(current_user.id, str(image_name))
     try:
         response = aws.generate_presigned_post(S3_BUCKET_NAME, key, ExpiresIn=S3_URL_EXPIRE_TIME)
     except:
