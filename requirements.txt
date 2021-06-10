@@ -14,7 +14,7 @@ dataclasses==0.7
 dnspython==1.16.0
 docutils==0.15.2
 email-validator==1.0.5
-fastapi==0.42.0
+fastapi==0.65.2
 graphene==2.1.8
 graphql-core==2.2.1
 graphql-relay==2.0.0
